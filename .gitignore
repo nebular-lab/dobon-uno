@@ -1,0 +1,40 @@
+# 共通
+*.log
+*.gz
+.DS_Store
+*.pem
+.env*.local
+
+# クライアント側
+# dependencies
+/client/node_modules/
+/client/.pnp
+/client/.pnp.js
+/client/.yarn/install-state.gz
+
+# testing
+/client/coverage/
+
+# next.js
+/client/.next/
+/client/out/
+
+# production
+/client/build/
+
+# debug
+/client/npm-debug.log*
+/client/yarn-debug.log*
+/client/yarn-error.log*
+
+# vercel
+/client/.vercel
+
+# typescript
+/client/*.tsbuildinfo
+/client/next-env.d.ts
+
+# サーバー側
+# 例: Node modulesとビルドディレクトリ
+/server/node_modules
+/server/dist
