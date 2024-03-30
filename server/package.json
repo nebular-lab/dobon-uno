@@ -2,11 +2,14 @@
   "name": "server",
   "version": "1.0.0",
   "description": "",
-  "main": "main.ts",
+  "main": "dist/main.js",
   "scripts": {
-    "start": "ts-node src/main.ts",
+    "start": "node .",
+    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn src/main.ts",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "clean": "rimraf dist",
+    "tsc": "tsc",
+    "build": "npm-run-all clean tsc"
   },
   "keywords": [],
   "author": "",
@@ -15,6 +18,7 @@
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
+    "npm-run-all": "^4.1.5",
     "socket.io": "^4.7.5"
   },
   "devDependencies": {
