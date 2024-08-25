@@ -1,95 +1,159 @@
-import { AnimationScope, motion, useAnimate } from "framer-motion";
+import { motion } from "framer-motion";
+import { useAtomValue } from "jotai";
+import { match } from "ts-pattern";
+
+import {
+  heroSeatIdAtom,
+  nowTurnAtom,
+  Player,
+  player1Atom,
+  player2Atom,
+  player3Atom,
+  player4Atom,
+  player5Atom,
+  player6Atom,
+  SeatId,
+} from "@/store/atom";
+const bottom = "absolute inset-x-0 bottom-[-8%] m-auto size-fit";
+const leftBottom = "absolute inset-y-0 left-[-8%] top-1/2 m-auto size-fit";
+const leftTop = "absolute inset-y-0 -top-1/2 left-[-8%] m-auto size-fit";
+const top = "absolute inset-x-0 top-[-8%] m-auto size-fit";
+const rightTop = "absolute inset-y-0 -top-1/2 right-[-8%] m-auto size-fit";
+const rightBottom = "absolute inset-y-0 right-[-8%] top-1/2 m-auto size-fit";
+
+const classNames = [bottom, leftBottom, leftTop, top, rightTop, rightBottom];
+
+const getSeatClassName = (heroSeatId: SeatId, seatId: SeatId) => {
+  const offset = (seatId - heroSeatId + 6) % 6; // 時計回りのオフセットを計算
+  return classNames[offset];
+};
 
 export const Game = () => {
-  const [scope, animate] = useAnimate();
-  const [scope2, animate2] = useAnimate();
-  const [scope3, animate3] = useAnimate();
-  const [targetScope] = useAnimate();
-
-  const handleClick = (
-    targetScope: AnimationScope<any>,
-    cardScope: AnimationScope<any>
-  ) => {
-    const target = targetScope.current.getBoundingClientRect();
-    const scopeElem = cardScope.current.getBoundingClientRect();
-
-    // アニメーションで移動
-    animate(cardScope.current, {
-      x: target.left - scopeElem.left + (target.width - scopeElem.width) / 2,
-      y: target.top - scopeElem.top + (target.height - scopeElem.height) / 2,
-    });
-  };
-
+  const heroSeatId = useAtomValue(heroSeatIdAtom);
+  const seatIds: SeatId[] = [1, 2, 3, 4, 5, 6];
   return (
-    <div className="relative m-auto aspect-video max-h-screen bg-slate-700">
-      <div className="absolute inset-0 -top-1/4 m-auto h-1/2 w-3/5 rounded-full border-4 border-slate-400" />
-      <div
-        ref={targetScope}
-        className="absolute inset-0 -top-1/4 m-auto flex h-1/6 w-1/4 items-center justify-center rounded-md border-2 border-slate-400"
-      >
-        <div className="flex size-[5vw] select-none items-center justify-center rounded-md border-2 border-slate-400 bg-red-600 text-center text-[3vw] text-slate-200">
-          5
+    <div className="flex justify-center pt-20">
+      <div className="relative h-[335px] w-[770px] rounded-full border-2">
+        <div className="absolute inset-0 -left-1/2 m-auto size-fit">
+          <ArrowAnimation isRotate={false} />
         </div>
-      </div>
-      <div className="absolute inset-0 top-2/3 m-auto flex h-1/4 w-3/5 flex-wrap items-center justify-center gap-1 rounded-md border-2 border-slate-400">
-        <motion.div
-          ref={scope}
-          onClick={() => {
-            handleClick(targetScope, scope);
-          }}
-          className="flex size-[5vw] select-none items-center justify-center rounded-md border-2 border-slate-400 bg-red-600 text-center text-[3vw] text-slate-200 hover:border-orange-400 hover:bg-red-700"
-          transition={{ duration: 0.1 }}
-          whileHover={{ scale: 1.2 }}
-        >
-          6
-        </motion.div>
-        <motion.div
-          ref={scope2}
-          onClick={() => {
-            handleClick(targetScope, scope2);
-          }}
-          className="flex size-[5vw] select-none items-center justify-center rounded-md border-2 border-slate-400 bg-red-600 text-center text-[3vw] text-slate-200 hover:border-orange-400 hover:bg-red-700"
-          transition={{ duration: 0.1 }}
-          whileHover={{ scale: 1.2 }}
-        >
-          7
-        </motion.div>
-        <motion.div
-          ref={scope3}
-          onClick={() => {
-            handleClick(targetScope, scope3);
-          }}
-          className="flex size-[5vw] select-none items-center justify-center rounded-md border-2 border-slate-400 bg-red-600 text-center text-[3vw] text-slate-200 hover:border-orange-400 hover:bg-red-700"
-          transition={{ duration: 0.1 }}
-          whileHover={{ scale: 1.2 }}
-        >
-          8
-        </motion.div>
+        <div className="absolute inset-0 -right-1/2 m-auto size-fit">
+          <ArrowAnimation isRotate />
+        </div>
+        {seatIds.map((seatId) => (
+          <div key={seatId} className={getSeatClassName(heroSeatId, seatId)}>
+            <PlayerArea seatId={seatId} />
+          </div>
+        ))}
       </div>
     </div>
   );
 };
 
-type PlayerProps = {
-  top: "-top-1/2" | "top-1/4" | undefined;
-  left: "left-[60%]" | "-left-[60%]" | undefined;
+type PlayerAreaProps = {
+  seatId: SeatId;
 };
-const Player = (props: PlayerProps) => {
-  const { top, left } = props;
+const PlayerArea = ({ seatId }: PlayerAreaProps) => {
+  const nowTurn = useAtomValue(nowTurnAtom);
+  const player = useAtomValue(playerAtom(seatId));
+
+  const getName = (player: Player) =>
+    player.kind === "seated" ? player.name : "-----";
+
+  const getNameColor = (player: Player) =>
+    player.kind === "seated" ? "text-foreground" : "text-foreground/50";
+
+  const getScore = (player: Player) =>
+    player.kind === "seated" ? player.score : "-";
+
+  const getScoreColor = (player: Player, score: string | number) => {
+    if (score === 1) return "text-primary";
+    return player.kind === "seated" ? "text-foreground" : "text-foreground/50";
+  };
+
+  const getBorderColor = (player: Player, isNowTurn: boolean) => {
+    if (isNowTurn) return "border-primary";
+    return player.kind === "empty" ? "border-border/60" : "border-border";
+  };
+
+  const name = getName(player);
+  const nameColor = getNameColor(player);
+  const score = getScore(player);
+  const scoreColor = getScoreColor(player, score);
+  const isNowTurn = seatId === nowTurn;
+  const borderColor = getBorderColor(player, isNowTurn);
 
   return (
-    <div className="absolute inset-0 top-1/4 m-auto flex h-[10%] w-1/6 items-center rounded-full bg-slate-400 pl-1 pr-2">
-      <div className="flex aspect-square  h-[90%] items-center justify-center rounded-full bg-slate-700  text-[2vw] text-slate-200">
-        13
-      </div>
-      <div className="flex size-full flex-col justify-center ">
-        <div className="text-center text-[2vw] font-bold text-slate-700">
-          nebunebu
+    <div className="relative h-[52px] w-[168px]">
+      {isNowTurn && (
+        <motion.div
+          className="absolute inset-0 m-auto  rounded-full bg-primary opacity-50 "
+          initial={{ scale: 1, opacity: 0.5 }}
+          animate={{ scale: [1, 1.1], opacity: [0.5, 1] }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+            repeatType: "mirror",
+          }}
+        />
+      )}
+      <div
+        className={`relative size-full rounded-full border-2 bg-background ${borderColor}`}
+      >
+        <div
+          className={`absolute inset-y-[-2px] left-[-2px] flex aspect-square items-center justify-center rounded-full border-2 ${scoreColor} ${borderColor}`}
+        >
+          {score}
         </div>
-        <div className=" text-center text-[2vw] font-bold text-slate-700">
-          +120
+        <div
+          className={`flex h-full items-center justify-center pl-[40px] ${nameColor}`}
+        >
+          {name}
         </div>
       </div>
     </div>
+  );
+};
+
+const playerAtom = (seatId: SeatId) =>
+  match(seatId)
+    .with(1, () => player1Atom)
+    .with(2, () => player2Atom)
+    .with(3, () => player3Atom)
+    .with(4, () => player4Atom)
+    .with(5, () => player5Atom)
+    .with(6, () => player6Atom)
+    .exhaustive();
+
+type ArrowAnimationProps = {
+  isRotate: boolean;
+};
+const ArrowAnimation = ({ isRotate }: ArrowAnimationProps) => {
+  const rotate = isRotate ? "rotate-180" : "";
+  return (
+    <motion.svg
+      width="200"
+      height="200"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      className={rotate}
+    >
+      <motion.path
+        d="M 50 80 A 30 30 0 0 1 50 20 L 45 25" // 中心方向に少し折れるパス
+        className="stroke-border"
+        fill="transparent"
+        strokeWidth="2"
+        initial={{ pathLength: 0 }}
+        animate={{ pathLength: 1 }}
+        transition={{
+          duration: 2,
+          ease: "easeInOut",
+          repeat: Infinity,
+          repeatType: "loop",
+          repeatDelay: 1,
+          delay: 0.5,
+        }}
+      />
+    </motion.svg>
   );
 };

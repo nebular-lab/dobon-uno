@@ -38,7 +38,7 @@ type DrawFourCard = {
   kind: "WildDrawFourCard";
 };
 
-type Card =
+export type Card =
   | NumberCard
   | ForceWildCard
   | ReverseCard
@@ -47,7 +47,7 @@ type Card =
   | WildCard
   | DrawFourCard;
 
-type CardWithPrivateInfo = Card & {
+export type CardWithPrivateInfo = Card & {
   canDiscard: boolean; // このカードが今捨てられるか
   canDoubleDiscard: boolean; // 2枚捨て出来るか
 };

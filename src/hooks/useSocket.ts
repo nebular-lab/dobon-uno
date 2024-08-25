@@ -1,34 +1,43 @@
+import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
+import { gameAtom } from "@/store/atom";
 import { ClientToServerEvents, ServerToClientEvents } from "@/types/io";
 
-const socket: Socket<ServerToClientEvents, ClientToServerEvents> = io({
-  autoConnect: false,
-});
+export const socketClient: Socket<ServerToClientEvents, ClientToServerEvents> =
+  io({
+    autoConnect: false,
+  });
 
 export const useSocket = () => {
+  const setGame = useSetAtom(gameAtom);
   useEffect(() => {
     const socketInitializer = async () => {
       await fetch("/api/socket", { method: "POST" });
-      if (socket.connected) {
+      if (socketClient.connected) {
         return;
       }
       // socket.ioサーバに接続
-      socket.connect();
+      socketClient.connect();
       // socket.ioのイベント登録する場合はここに
-      socket.on("connect", () => {
+      socketClient.on("connect", () => {
         console.log("connected!");
       });
       // socket.ioサーバから送られてきたメッセージを出力
-      socket.on("msg", (msg) => {
+      socketClient.on("msg", (msg) => {
         console.log(msg);
+      });
+      socketClient.on("createdRoom", (game) => {
+        console.log(game);
+        setGame(game);
       });
     };
     socketInitializer();
     return () => {
-      socket.off("connect");
-      socket.off("msg");
+      socketClient.off("connect");
+      socketClient.off("msg");
+      socketClient.off("createdRoom");
     };
-  }, []);
+  }, [setGame]);
 };
