@@ -13,9 +13,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
-
-import { socketClient } from "../../hooks/useSocket";
+import { socketClient } from "@/hooks/useSocket";
 
 const CreateFormSchema = z.object({
   username: z
@@ -105,14 +103,7 @@ const JoinForm = () => {
     },
   });
   function onJoinSubmit(data: z.infer<typeof JoinFormSchema>) {
-    toast({
-      title: "You submitted the following values:",
-      description: (
-        <pre className="mt-2 w-[340px] rounded-md bg-slate-950 p-4">
-          <code className="text-white">{JSON.stringify(data, null, 2)}</code>
-        </pre>
-      ),
-    });
+    socketClient.emit("joinRoom", data.username, data.password);
   }
   return (
     <Card className="w-[350px]">

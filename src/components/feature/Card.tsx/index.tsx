@@ -1,6 +1,7 @@
 import { match } from "ts-pattern";
 
-import { Card as CardType } from "@/server/game";
+import { Card as CardType } from "@/server";
+
 type CardProps = {
   card: CardType;
 };

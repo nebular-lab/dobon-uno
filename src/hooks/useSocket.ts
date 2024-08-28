@@ -2,8 +2,8 @@ import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
 
+import { ClientToServerEvents, ServerToClientEvents } from "@/pages/api/socket";
 import { gameAtom } from "@/store/atom";
-import { ClientToServerEvents, ServerToClientEvents } from "@/types/io";
 
 export const socketClient: Socket<ServerToClientEvents, ClientToServerEvents> =
   io({
@@ -24,20 +24,18 @@ export const useSocket = () => {
       socketClient.on("connect", () => {
         console.log("connected!");
       });
-      // socket.ioサーバから送られてきたメッセージを出力
-      socketClient.on("msg", (msg) => {
-        console.log(msg);
+      socketClient.on("createdRoom", (clientWaitingGame) => {
+        setGame(clientWaitingGame);
       });
-      socketClient.on("createdRoom", (game) => {
-        console.log(game);
-        setGame(game);
+      socketClient.on("joinedRoom", (clientWaitingGame) => {
+        setGame(clientWaitingGame);
       });
     };
     socketInitializer();
     return () => {
       socketClient.off("connect");
-      socketClient.off("msg");
       socketClient.off("createdRoom");
+      socketClient.off("joinedRoom");
     };
   }, [setGame]);
 };
