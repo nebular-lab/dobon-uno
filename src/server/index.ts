@@ -1,3 +1,5 @@
+import { z } from "zod";
+
 export type Color = "Red" | "Yellow" | "Green" | "Blue";
 
 export type CardNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -69,9 +71,11 @@ export type Counterclockwise = -1;
 
 export type SeatId = 1 | 2 | 3 | 4 | 5 | 6;
 
-export type EmptyPlayer = {
-  kind: "client-server-empty-player";
-};
+export const EmptyPlayerSchema = z.object({
+  kind: z.literal("client-server-empty-player"),
+});
+
+export type EmptyPlayer = z.infer<typeof EmptyPlayerSchema>;
 
 export type ServerPlayingPlayer = {
   kind: "server-playing-player";
@@ -104,8 +108,6 @@ export type Field = {
   direction: Clockwise | Counterclockwise;
   drawStack: number;
 };
-
-
 
 export type ServerPlayingGame = {
   kind: "server-playing-game";
