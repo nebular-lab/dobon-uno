@@ -2,18 +2,20 @@ import { motion } from "framer-motion";
 import { useAtomValue } from "jotai";
 import { match } from "ts-pattern";
 
+import { EmptyPlayer, SeatId } from "@/server";
+import { WaitingPlayer } from "@/server/waitingRoom";
 import {
   heroSeatIdAtom,
   nowTurnAtom,
-  Player,
   player1Atom,
   player2Atom,
   player3Atom,
   player4Atom,
   player5Atom,
   player6Atom,
-  SeatId,
+  roomIdAtom,
 } from "@/store/atom";
+
 const bottom = "absolute inset-x-0 bottom-[-8%] m-auto size-fit";
 const leftBottom = "absolute inset-y-0 left-[-8%] top-1/2 m-auto size-fit";
 const leftTop = "absolute inset-y-0 -top-1/2 left-[-8%] m-auto size-fit";
@@ -29,11 +31,14 @@ const getSeatClassName = (heroSeatId: SeatId, seatId: SeatId) => {
 };
 
 export const Game = () => {
-  const heroSeatId = useAtomValue(heroSeatIdAtom);
+  const heroSeatId = useAtomValue(heroSeatIdAtom) ?? 1;
   const seatIds: SeatId[] = [1, 2, 3, 4, 5, 6];
   return (
     <div className="flex justify-center pt-20">
       <div className="relative h-[335px] w-[770px] rounded-full border-2">
+        <div className="absolute -left-10 -top-10 m-auto size-fit">
+          <RoomID />
+        </div>
         <div className="absolute inset-0 -left-1/2 m-auto size-fit">
           <ArrowAnimation isRotate={false} />
         </div>
@@ -55,25 +60,37 @@ type PlayerAreaProps = {
 };
 const PlayerArea = ({ seatId }: PlayerAreaProps) => {
   const nowTurn = useAtomValue(nowTurnAtom);
-  const player = useAtomValue(playerAtom(seatId));
+  const emptyPlayer: EmptyPlayer = { kind: "client-server-empty-player" };
+  const player = useAtomValue(playerAtom(seatId)) ?? emptyPlayer;
 
-  const getName = (player: Player) =>
-    player.kind === "seated" ? player.name : "-----";
+  const getName = (player: WaitingPlayer | EmptyPlayer) =>
+    player.kind === "client-server-waiting-player" ? player.name : "-----";
 
-  const getNameColor = (player: Player) =>
-    player.kind === "seated" ? "text-foreground" : "text-foreground/50";
+  const getNameColor = (player: WaitingPlayer | EmptyPlayer) =>
+    player.kind === "client-server-waiting-player"
+      ? "text-foreground"
+      : "text-foreground/50";
 
-  const getScore = (player: Player) =>
-    player.kind === "seated" ? player.score : "-";
+  const getScore = (player: WaitingPlayer | EmptyPlayer) => "";
 
-  const getScoreColor = (player: Player, score: string | number) => {
+  const getScoreColor = (
+    player: WaitingPlayer | EmptyPlayer,
+    score: string | number
+  ) => {
     if (score === 1) return "text-primary";
-    return player.kind === "seated" ? "text-foreground" : "text-foreground/50";
+    return player.kind === "client-server-waiting-player"
+      ? "text-foreground"
+      : "text-foreground/50";
   };
 
-  const getBorderColor = (player: Player, isNowTurn: boolean) => {
+  const getBorderColor = (
+    player: WaitingPlayer | EmptyPlayer,
+    isNowTurn: boolean
+  ) => {
     if (isNowTurn) return "border-primary";
-    return player.kind === "empty" ? "border-border/60" : "border-border";
+    return player.kind === "client-server-empty-player"
+      ? "border-border/60"
+      : "border-border";
   };
 
   const name = getName(player);
@@ -156,4 +173,10 @@ const ArrowAnimation = ({ isRotate }: ArrowAnimationProps) => {
       />
     </motion.svg>
   );
+};
+
+const RoomID = () => {
+  const roomId = useAtomValue(roomIdAtom);
+  if (!roomId) return null;
+  return <div className="text-foreground/80">ルームID : {roomId}</div>;
 };
