@@ -1,5 +1,3 @@
-import { flatten } from "ramda";
-
 export type Color = "Red" | "Yellow" | "Green" | "Blue";
 
 export type CardNumber = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -72,17 +70,12 @@ export type Counterclockwise = -1;
 export type SeatId = 1 | 2 | 3 | 4 | 5 | 6;
 
 export type EmptyPlayer = {
-  kind: "empty";
+  kind: "client-server-empty-player";
 };
 
-export type WaitingPlayer = {
-  kind: "waiting";
-  name: string;
-  deposit: number;
-};
-
-export type PlayingPlayer = {
-  kind: "playing";
+export type ServerPlayingPlayer = {
+  kind: "server-playing-player";
+  socketId: string;
   name: string;
   deposit: number;
   cards: CardWithActionMeta[];
@@ -97,8 +90,9 @@ export type PlayingPlayer = {
   canSelectColor: boolean;
 };
 
-export type ClientPlayer = {
-  kind: "client";
+export type ClientPlayingPlayer = {
+  kind: "client-playing-player";
+  socketId: string;
   name: string;
   deposit: number;
   score: number;
@@ -111,33 +105,18 @@ export type Field = {
   drawStack: number;
 };
 
-export type WaitingGame = {
-  kind: "waiting";
+
+
+export type ServerPlayingGame = {
+  kind: "server-playing-game";
   roomId: string;
   players: {
-    1: WaitingPlayer | EmptyPlayer;
-    2: WaitingPlayer | EmptyPlayer;
-    3: WaitingPlayer | EmptyPlayer;
-    4: WaitingPlayer | EmptyPlayer;
-    5: WaitingPlayer | EmptyPlayer;
-    6: WaitingPlayer | EmptyPlayer;
-  };
-};
-
-export type ClientWaitingGame = WaitingGame & {
-  seatId: SeatId;
-};
-
-export type PlayingGame = {
-  kind: "in-game";
-  roomId: string;
-  players: {
-    1: PlayingPlayer | EmptyPlayer;
-    2: PlayingPlayer | EmptyPlayer;
-    3: PlayingPlayer | EmptyPlayer;
-    4: PlayingPlayer | EmptyPlayer;
-    5: PlayingPlayer | EmptyPlayer;
-    6: PlayingPlayer | EmptyPlayer;
+    1: ServerPlayingPlayer | EmptyPlayer;
+    2: ServerPlayingPlayer | EmptyPlayer;
+    3: ServerPlayingPlayer | EmptyPlayer;
+    4: ServerPlayingPlayer | EmptyPlayer;
+    5: ServerPlayingPlayer | EmptyPlayer;
+    6: ServerPlayingPlayer | EmptyPlayer;
   };
   field: {
     discardedCards: Card[];
@@ -148,16 +127,16 @@ export type PlayingGame = {
   };
 };
 
-export type ClientInGame = {
-  kind: "client-in-game";
+export type ClientPlayingGame = {
+  kind: "client-playing-game";
   roomId: string;
   players: {
-    1: ClientPlayer | EmptyPlayer;
-    2: ClientPlayer | EmptyPlayer;
-    3: ClientPlayer | EmptyPlayer;
-    4: ClientPlayer | EmptyPlayer;
-    5: ClientPlayer | EmptyPlayer;
-    6: ClientPlayer | EmptyPlayer;
+    1: ClientPlayingPlayer | EmptyPlayer;
+    2: ClientPlayingPlayer | EmptyPlayer;
+    3: ClientPlayingPlayer | EmptyPlayer;
+    4: ClientPlayingPlayer | EmptyPlayer;
+    5: ClientPlayingPlayer | EmptyPlayer;
+    6: ClientPlayingPlayer | EmptyPlayer;
   };
   field: {
     discardedCards: Card[];
@@ -167,4 +146,3 @@ export type ClientInGame = {
     nowTurn: SeatId;
   };
 };
-

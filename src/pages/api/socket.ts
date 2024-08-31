@@ -1,8 +1,7 @@
 import { Server } from "socket.io";
 
-import { ClientWaitingGame } from "@/server";
 import { redisClient } from "@/server/redis";
-import { createRoomFlow, joinRoomFlow } from "@/server/waitingRoom";
+import { ClientWaitingGame, createRoomFlow } from "@/server/waitingRoom";
 
 import type { Server as HttpServer } from "http";
 import type { Socket as NetSocket } from "net";
@@ -57,33 +56,17 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
   io.on("connection", async (socket) => {
     socket.on("disconnect", () => console.log("disconnected"));
     socket.on("createRoom", (username) => {
-      const result = createRoomFlow(username, socket.id);
+      const result = createRoomFlow({
+        username,
+        socketId: socket.id,
+      });
       if (result.isOk()) {
         const roomId = result.value.clientWaitingGame.roomId;
         socket.join(roomId);
-        redisClient.set(roomId, JSON.stringify(result.value.waitingGame));
+        redisClient.set(roomId, JSON.stringify(result.value.serverWaitingGame));
         io.sockets
           .in(roomId)
           .emit("createdRoom", result.value.clientWaitingGame);
-      } else {
-        io.to(socket.id).emit("error", result.error.message);
-      }
-    });
-    socket.on("joinRoom", async (username, roomId) => {
-      console.log("joinRoom", username, roomId);
-
-      const waitingGame = await redisClient.get(roomId);
-      if (!waitingGame) {
-        io.to(socket.id).emit("error", "部屋が見つかりませんでした。");
-        return;
-      }
-      const result = joinRoomFlow(username, JSON.parse(waitingGame));
-      if (result.isOk()) {
-        socket.join(roomId);
-        redisClient.set(roomId, JSON.stringify(result.value.waitingGame));
-        io.sockets
-          .in(roomId)
-          .emit("joinedRoom", result.value.clientWaitingGame);
       } else {
         io.to(socket.id).emit("error", result.error.message);
       }
