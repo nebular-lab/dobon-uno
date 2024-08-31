@@ -1,7 +1,12 @@
 import { Server } from "socket.io";
 
 import { redisClient } from "@/server/redis";
-import { ClientWaitingGame, createRoomFlow } from "@/server/waitingRoom";
+import {
+  ClientWaitingGame,
+  createRoomFlow,
+  joinRoomFlow,
+  ServerWaitingGameSchema,
+} from "@/server/waitingRoom";
 
 import type { Server as HttpServer } from "http";
 import type { Socket as NetSocket } from "net";
@@ -55,6 +60,7 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
 
   io.on("connection", async (socket) => {
     socket.on("disconnect", () => console.log("disconnected"));
+
     socket.on("createRoom", (username) => {
       const result = createRoomFlow({
         username,
@@ -67,6 +73,47 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
         io.sockets
           .in(roomId)
           .emit("createdRoom", result.value.clientWaitingGame);
+      } else {
+        io.to(socket.id).emit("error", result.error.message);
+      }
+    });
+
+    socket.on("joinRoom", async (username, roomId) => {
+      const serverWaitingGame = await redisClient.get(roomId);
+
+      if (!serverWaitingGame) {
+        io.to(socket.id).emit("error", "room not found");
+        return;
+      }
+
+      const safeParsedServerWaitingGame = ServerWaitingGameSchema.safeParse(
+        JSON.parse(serverWaitingGame)
+      );
+
+      if (!safeParsedServerWaitingGame.success) {
+        io.to(socket.id).emit("error", "room not found");
+        return;
+      }
+
+      const result = joinRoomFlow({
+        username,
+        socketId: socket.id,
+        serverWaitingGame: safeParsedServerWaitingGame.data,
+      });
+
+      if (result.isOk()) {
+        const clientWaitingGames = result.value.clientWaitingGames;
+        socket.join(roomId);
+        redisClient.set(roomId, JSON.stringify(result.value.serverWaitingGame));
+        clientWaitingGames.forEach((game) => {
+          const seatId = game.seatId;
+          const socketId =
+            game.players[seatId].kind === "client-server-waiting-player"
+              ? game.players[seatId].socketId
+              : undefined;
+          if (!socketId) return;
+          io.to(socketId).emit("joinedRoom", game);
+        });
       } else {
         io.to(socket.id).emit("error", result.error.message);
       }
