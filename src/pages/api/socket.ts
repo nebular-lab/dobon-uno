@@ -82,7 +82,7 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
       const serverWaitingGame = await redisClient.get(roomId);
 
       if (!serverWaitingGame) {
-        io.to(socket.id).emit("error", "room not found");
+        io.to(socket.id).emit("error", "ルームが見つかりませんでした");
         return;
       }
 
@@ -91,7 +91,7 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
       );
 
       if (!safeParsedServerWaitingGame.success) {
-        io.to(socket.id).emit("error", "room not found");
+        io.to(socket.id).emit("error", "ルームが見つかりませんでした");
         return;
       }
 
