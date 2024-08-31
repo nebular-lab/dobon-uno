@@ -1,6 +1,6 @@
 import { atom } from "jotai";
 
-import { ClientWaitingGame } from "@/server";
+import { ClientWaitingGame } from "@/server/waitingRoom";
 
 export const gameAtom = atom<ClientWaitingGame | undefined>(undefined);
 
@@ -13,4 +13,4 @@ export const player4Atom = atom((get) => get(gameAtom)?.players[4]);
 export const player5Atom = atom((get) => get(gameAtom)?.players[5]);
 export const player6Atom = atom((get) => get(gameAtom)?.players[6]);
 export const heroSeatIdAtom = atom((get) => get(gameAtom)?.seatId);
-export const nowTurnAtom = atom(() => 7);// in-gameが実装されたら修正
+export const nowTurnAtom = atom(() => 7); // in-gameが実装されたら修正
