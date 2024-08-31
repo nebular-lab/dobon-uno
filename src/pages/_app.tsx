@@ -2,6 +2,7 @@ import "@/styles/globals.css";
 
 import { ThemeProvider } from "next-themes";
 
+import { Toaster } from "@/components/ui/toaster";
 import { useSocket } from "@/hooks/useSocket";
 
 import type { AppProps } from "next/app";
@@ -16,6 +17,7 @@ export default function App({ Component, pageProps }: AppProps) {
       // storageKey="acme-theme"
     >
       <Component {...pageProps} />
+      <Toaster />
     </ThemeProvider>
   );
 }
