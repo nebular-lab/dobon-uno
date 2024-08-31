@@ -188,7 +188,7 @@ const joinPlayer = (args: {
     name: username,
     deposit: 0,
   };
-  return ok({ waitingGame: { ...game, players }, test: "aaa" });
+  return ok({ waitingGame: { ...game, players } });
 };
 
 const addHeroSeatId = (
