@@ -1,6 +1,7 @@
 import { useSetAtom } from "jotai";
 import { useEffect } from "react";
 import { io, Socket } from "socket.io-client";
+import useSound from "use-sound";
 
 import { toast } from "@/components/ui/use-toast";
 import { ClientToServerEvents, ServerToClientEvents } from "@/pages/api/socket";
@@ -13,6 +14,7 @@ export const socketClient: Socket<ServerToClientEvents, ClientToServerEvents> =
 
 export const useSocket = () => {
   const setGame = useSetAtom(gameAtom);
+  const [play] = useSound("/sound/notification.mp3");
   useEffect(() => {
     const socketInitializer = async () => {
       await fetch("/api/socket", { method: "POST" });
@@ -38,6 +40,7 @@ export const useSocket = () => {
           toast({
             title: `${joinedUserName}さんが参加しました`,
           });
+          play();
         }
       );
       socketClient.on("error", (message) => {
