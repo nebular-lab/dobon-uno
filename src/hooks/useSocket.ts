@@ -31,10 +31,19 @@ export const useSocket = () => {
       socketClient.on("joinedRoom", (clientWaitingGame) => {
         setGame(clientWaitingGame);
       });
+      socketClient.on(
+        "otherPlayerJoined",
+        (clientWaitingGame, joinedUserName) => {
+          setGame(clientWaitingGame);
+          toast({
+            title: `${joinedUserName}さんが参加しました`,
+          });
+        }
+      );
       socketClient.on("error", (message) => {
         toast({
           title: message,
-          variant:"destructive",
+          variant: "destructive",
         });
       });
     };

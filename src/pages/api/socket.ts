@@ -36,6 +36,7 @@ interface SocketData {
 export type ServerToClientEvents = {
   createdRoom: (game: ClientWaitingGame) => void;
   joinedRoom: (game: ClientWaitingGame) => void;
+  otherPlayerJoined: (game: ClientWaitingGame, joinedUserName: string) => void;
   error: (message: string) => void;
 };
 
@@ -112,7 +113,11 @@ export default function handler(req: NextApiRequest, res: ResponseWithSocket) {
               ? game.players[seatId].socketId
               : undefined;
           if (!socketId) return;
-          io.to(socketId).emit("joinedRoom", game);
+          if (socketId === socket.id) {
+            io.to(socketId).emit("joinedRoom", game);
+            return;
+          }
+          io.to(socketId).emit("otherPlayerJoined", game, username);
         });
       } else {
         io.to(socket.id).emit("error", result.error.message);
